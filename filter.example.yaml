@@ -1,0 +1,44 @@
+# Example custom filter configuration
+# Copy this file to filter.yaml and modify as needed
+
+# Filter mode: strict, moderate, or loose
+mode: moderate
+
+# Whether to replace filtered content with asterisks
+filter_replacement: true
+
+# Whether to log blocked content (for debugging)
+log_blocked: false
+
+rules:
+  # Add your custom banned keywords
+  keywords:
+    banned:
+      - "company_secret"
+      - "confidential_project"
+      
+    # Keywords that trigger warnings but don't block
+    warning:
+      - "internal"
+      - "private"
+      
+  # Custom regex patterns
+  patterns:
+    # Block company-specific sensitive information
+    - pattern: "project\\s+[A-Z]{2,5}-\\d{3,5}"
+      name: "internal_project_code"
+      severity: 0.9
+      action: block
+      
+    # Warn about potential PII
+    - pattern: "\\b\\d{4}\\s?\\d{4}\\s?\\d{4}\\s?\\d{4}\\b"
+      name: "credit_card_pattern"
+      severity: 0.8
+      action: block
+      
+  # Whitelist patterns - content matching these won't be filtered
+  whitelist:
+    contexts:
+      - "test environment"
+      - "documentation"
+      - "example code"

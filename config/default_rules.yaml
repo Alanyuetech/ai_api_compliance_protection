@@ -1,0 +1,109 @@
+# Default filter rules for AI Content Filter
+# This file is embedded in the binary
+
+mode: moderate
+filter_replacement: true
+log_blocked: false
+
+rules:
+  keywords:
+    banned:
+      # Violence related
+      - "kill"
+      - "murder"
+      - "suicide"
+      - "bomb"
+      - "weapon"
+      - "terror"
+      - "assault"
+      
+      # Adult content
+      - "porn"
+      - "sex"
+      - "nude"
+      
+      # Illegal activities
+      - "drug"
+      - "cocaine"
+      - "heroin"
+      - "meth"
+      
+      # Hate speech
+      - "hate"
+      - "racist"
+      
+    warning:
+      # Potentially sensitive topics
+      - "violence"
+      - "abuse"
+      - "harm"
+      - "illegal"
+      - "dangerous"
+      - "exploit"
+      - "malware"
+      - "virus"
+      - "hack"
+      - "crack"
+      - "bypass"
+      
+  patterns:
+    # Prompt injection attempts
+    - pattern: "ignore.*previous.*instruction"
+      name: "prompt_injection"
+      severity: 1.0
+      action: block
+      
+    - pattern: "forget.*instruction"
+      name: "prompt_injection"
+      severity: 1.0
+      action: block
+      
+    - pattern: "bypass.*filter"
+      name: "filter_bypass"
+      severity: 1.0
+      action: block
+      
+    # Dangerous instructions
+    - pattern: "how.*to.*make.*bomb"
+      name: "dangerous_instruction"
+      severity: 1.0
+      action: block
+      
+    - pattern: "how.*to.*hack"
+      name: "hacking_instruction"
+      severity: 0.9
+      action: block
+      
+    - pattern: "how.*to.*steal"
+      name: "illegal_instruction"
+      severity: 0.9
+      action: block
+      
+    # Personal information patterns
+    - pattern: "\\b\\d{3}-\\d{2}-\\d{4}\\b"
+      name: "ssn_pattern"
+      severity: 0.8
+      action: block
+      
+    - pattern: "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b"
+      name: "email_pattern"
+      severity: 0.3
+      action: warn
+      
+  whitelist:
+    contexts:
+      # Academic and educational contexts
+      - "educational purpose"
+      - "academic research"
+      - "historical context"
+      - "news report"
+      - "fiction"
+      - "creative writing"
+      - "safety training"
+      - "security research"
+      
+    domains:
+      # Safe domains (for future use)
+      - "education"
+      - "healthcare"
+      - "legal"

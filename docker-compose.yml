@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # Service for building the filter
+  builder:
+    build:
+      context: .
+      target: builder
+    volumes:
+      - ./bin:/output
+    command: >
+      sh -c "cp /app/target/release/ai-content-filter /output/ai-filter-linux &&
+             chmod +x /output/ai-filter-linux &&
+             echo 'Binary exported to ./bin/ai-filter-linux'"
+  
+  # Service for running the filter
+  filter:
+    build:
+      context: .
+    volumes:
+      - ./test-data:/data:ro
+      - ./filter.yaml:/home/filter/filter.yaml:ro
+    stdin_open: true
+    tty: true
+    command: check "Test content to filter"
+  
+  # Service for interactive testing
+  test:
+    build:
+      context: .
+    volumes:
+      - ./test-data:/data:ro
+      - ./filter.yaml:/home/filter/filter.yaml:ro
+    stdin_open: true
+    tty: true
+    entrypoint: /bin/bash
+    command: -c "ai-filter --help && bash"
