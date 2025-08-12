@@ -1,0 +1,67 @@
+name: Build macOS Binary
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'src/**'
+      - 'Cargo.toml'
+      - '.github/workflows/build-macos.yml'
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Build macOS Binary
+        run: |
+          cargo build --release
+          cp target/release/ai-content-filter ./ai-filter-macos
+          chmod +x ./ai-filter-macos
+          
+      - name: Test Binary
+        run: |
+          ./ai-filter-macos --version
+          ./ai-filter-macos check "test content"
+      
+      - name: Check if release exists
+        id: check_release
+        run: |
+          if gh release view v1.0.0 &>/dev/null; then
+            echo "release_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "release_exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload to existing release
+        if: steps.check_release.outputs.release_exists == 'true'
+        run: |
+          # Delete old macOS binary if exists
+          gh release delete-asset v1.0.0 ai-filter-macos --yes || true
+          # Upload new macOS binary
+          gh release upload v1.0.0 ./ai-filter-macos --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create release if not exists
+        if: steps.check_release.outputs.release_exists == 'false'
+        run: |
+          gh release create v1.0.0 \
+            --title "AI Content Filter v1.0.0" \
+            --notes "AI Content Filter with macOS support" \
+            ./ai-filter-macos
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
