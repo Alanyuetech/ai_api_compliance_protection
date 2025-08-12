@@ -11,7 +11,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Install Rust
         run: |
@@ -31,7 +31,7 @@ jobs:
           ./ai-filter-macos check "test content"
       
       - name: Upload as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ai-filter-macos
           path: ai-filter-macos
