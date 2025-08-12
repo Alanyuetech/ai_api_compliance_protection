@@ -1,21 +1,42 @@
-# Project files
+# Environment and sensitive files
+.env
+.env.local
+*.key
+*.pem
+
+# Project specific
 CLAUDE.md
 
 # Rust
 target/
 *.rs.bk
+Cargo.lock
 
-# Binary files
+# Binary files and releases
 bin/
 *.exe
-
-# Release packages
 release-*/
 *.tar.gz
 *.zip
+*.deb
+*.rpm
+*.dmg
+
+# Build artifacts
+dist/
+build/
+*.o
+*.so
+*.dylib
+*.dll
 
 # OS files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
 # IDE
@@ -23,7 +44,31 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+*~
+.project
+.classpath
+.settings/
 
 # Temporary files
 *.tmp
+*.temp
 *.log
+*.pid
+*.cache
+
+# Test coverage
+*.gcov
+*.gcda
+*.gcno
+coverage/
+
+# Downloaded artifacts
+ai-filter-macos/
+ai-filter-linux/
+ai-filter-windows/
+
+# Package manager files
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

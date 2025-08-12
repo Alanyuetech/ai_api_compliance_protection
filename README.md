@@ -19,11 +19,51 @@ AI Content Filter is a lightweight, offline content filtering tool designed to p
 - 🌍 **Cross-platform**: Works on Windows, Linux, and macOS
 - 🔧 **Easy Integration**: Simple command-line interface, works with any programming language
 
+### Project Structure
+
+```
+ai_api_compliance_protection/
+├── src/                        # Source code (Rust)
+│   ├── main.rs                # CLI entry point
+│   ├── filter.rs              # Core filtering engine
+│   └── config.rs              # Configuration management
+├── config/                     # Configuration files
+│   └── default_rules.yaml     # Default filter rules (embedded in binary)
+├── examples/                   # Integration examples
+│   ├── python_example.py      # Python integration example
+│   └── nodejs_example.js      # Node.js integration example
+├── bin/                        # Compiled binaries (git-ignored)
+│   ├── ai-filter-linux        # Linux executable
+│   ├── ai-filter-windows.exe  # Windows executable
+│   └── ai-filter-macos        # macOS executable (build via GitHub Actions)
+├── .github/                    # GitHub specific files
+│   └── workflows/             # GitHub Actions workflows
+│       ├── release.yml        # Multi-platform release workflow
+│       └── build-macos.yml    # macOS build workflow
+├── .env.example               # Environment variables template
+├── .env                       # Local environment variables (git-ignored)
+├── .gitignore                 # Git ignore rules
+├── Cargo.toml                 # Rust project configuration
+├── Cargo.lock                 # Rust dependencies lock file
+├── Dockerfile                 # Docker build configuration
+├── Dockerfile.cross           # Cross-platform Docker build
+├── filter.example.yaml        # Example custom filter configuration
+├── build.sh                   # Simple build script
+├── build-all-platforms.sh     # Multi-platform build script
+├── build-docker.sh            # Docker-based build script
+├── package-release.sh         # Release packaging script
+├── upload-release.sh          # GitHub release upload script
+├── test.sh                    # Test script
+├── LICENSE                    # MIT License
+├── README.md                  # This file
+└── INSTALL.md                 # Installation guide
+```
+
 ### Quick Start
 
 #### Download Pre-compiled Binary
 
-Download the latest release for your platform from the [Releases](https://github.com/your-repo/releases) page:
+Download the latest release for your platform from the [Releases](https://github.com/Alanyuetech/ai_api_compliance_protection/releases) page:
 
 - Windows: `ai-filter-windows.exe`
 - Linux: `ai-filter-linux`
@@ -109,6 +149,35 @@ fi
 ```
 
 ### Configuration
+
+#### Environment Variables
+
+For development and release management, create a `.env` file (copy from `.env.example`):
+
+```bash
+# Copy the template
+cp .env.example .env
+
+# Edit .env and add your GitHub token
+nano .env
+```
+
+Example `.env` file:
+```env
+# GitHub Personal Access Token (required for releases)
+GITHUB_TOKEN=ghp_your_actual_token_here
+
+# Repository information
+GITHUB_OWNER=Alanyuetech
+GITHUB_REPO=ai_api_compliance_protection
+
+# Version
+VERSION=v1.0.0
+```
+
+**Important**: Never commit `.env` file to version control. It's already in `.gitignore`.
+
+#### Filter Configuration
 
 Create a `filter.yaml` file in the same directory as the executable for custom rules:
 
@@ -224,7 +293,7 @@ AI 内容过滤器是一个轻量级的离线内容过滤工具，专门设计�
 
 #### 下载预编译版本
 
-从 [Releases](https://github.com/your-repo/releases) 页面下载适合您平台的最新版本：
+从 [Releases](https://github.com/Alanyuetech/ai_api_compliance_protection/releases) 页面下载适合您平台的最新版本：
 
 - Windows: `ai-filter-windows.exe`
 - Linux: `ai-filter-linux`
