@@ -1,0 +1,50 @@
+# Multi-platform cross-compilation Dockerfile
+FROM rust:1.75 as builder
+
+# Install cross-compilation tools
+RUN apt-get update && apt-get install -y \
+    gcc-mingw-w64-x86-64 \
+    gcc-aarch64-linux-gnu \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add Rust targets for cross-compilation
+RUN rustup target add \
+    x86_64-pc-windows-gnu \
+    x86_64-unknown-linux-musl \
+    aarch64-unknown-linux-gnu \
+    x86_64-apple-darwin || true
+
+WORKDIR /app
+
+# Copy project files
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+COPY config ./config
+
+# Build for Linux (native)
+RUN cargo build --release --target x86_64-unknown-linux-gnu
+
+# Build for Linux (musl - static binary)
+RUN cargo build --release --target x86_64-unknown-linux-musl || \
+    cargo build --release
+
+# Build for Windows
+RUN cargo build --release --target x86_64-pc-windows-gnu
+
+# Note: macOS cross-compilation from Linux is complex and requires additional setup
+# It's usually done on macOS runners in CI/CD
+
+# Final stage - collect all binaries
+FROM alpine:latest
+
+RUN apk add --no-cache file
+
+WORKDIR /output
+
+# Copy all built binaries (with proper error handling)
+COPY --from=builder /app/target/x86_64-unknown-linux-gnu/release/ai-content-filter /output/ai-filter-linux
+COPY --from=builder /app/target/x86_64-pc-windows-gnu/release/ai-content-filter.exe /output/ai-filter-windows.exe
+
+CMD ["sh", "-c", "ls -la /output && file /output/*"]

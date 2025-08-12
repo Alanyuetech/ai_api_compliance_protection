@@ -1,1 +1,29 @@
+# Project files
 CLAUDE.md
+
+# Rust
+target/
+*.rs.bk
+
+# Binary files
+bin/
+*.exe
+
+# Release packages
+release-*/
+*.tar.gz
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.log

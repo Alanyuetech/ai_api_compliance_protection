@@ -1,7 +1,6 @@
 use aho_corasick::AhoCorasick;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
 
 use crate::config::{FilterConfig, FilterMode};
 
@@ -69,8 +68,8 @@ impl ContentFilter {
     
     pub fn check(&self, text: &str) -> FilterResult {
         let mut matched_rules = Vec::new();
-        let mut total_score = 0.0;
-        let mut max_severity = 0.0;
+        let mut total_score: f32 = 0.0;
+        let mut max_severity: f32 = 0.0;
         
         // Check if content matches whitelist
         if self.is_whitelisted(text) {
@@ -92,7 +91,8 @@ impl ContentFilter {
                 max_severity = max_severity.max(severity);
                 
                 for m in matches {
-                    matched_rules.push(format!("keyword: {}", m.as_str()));
+                    let matched_str = &text[m.start()..m.end()];
+                    matched_rules.push(format!("keyword: {}", matched_str));
                 }
             }
         }
@@ -157,7 +157,7 @@ impl ContentFilter {
     }
     
     fn check_warning_keywords(&self, text: &str) -> f32 {
-        let mut score = 0.0;
+        let mut score: f32 = 0.0;
         for keyword in &self.config.rules.keywords.warning {
             if text.contains(keyword) {
                 score += 0.2;
@@ -205,8 +205,9 @@ impl ContentFilter {
         // Replace banned keywords
         if let Some(ref matcher) = self.keyword_matcher {
             for m in matcher.find_iter(text) {
-                let replacement = "*".repeat(m.as_str().len());
-                filtered = filtered.replace(m.as_str(), &replacement);
+                let matched_str = &text[m.start()..m.end()];
+                let replacement = "*".repeat(matched_str.len());
+                filtered = filtered.replace(matched_str, &replacement);
             }
         }
         

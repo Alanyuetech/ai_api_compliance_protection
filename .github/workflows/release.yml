@@ -1,0 +1,175 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-unknown-linux-musl
+          override: true
+      
+      - name: Build Linux Binary
+        run: |
+          cargo build --release --target x86_64-unknown-linux-musl
+          cp target/x86_64-unknown-linux-musl/release/ai-content-filter ./ai-filter-linux
+          chmod +x ./ai-filter-linux
+      
+      - name: Upload Linux Binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: ai-filter-linux
+          path: ai-filter-linux
+
+  build-windows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-pc-windows-gnu
+          override: true
+      
+      - name: Install Windows Cross Compiler
+        run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64
+      
+      - name: Build Windows Binary
+        run: |
+          cargo build --release --target x86_64-pc-windows-gnu
+          cp target/x86_64-pc-windows-gnu/release/ai-content-filter.exe ./ai-filter-windows.exe
+      
+      - name: Upload Windows Binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: ai-filter-windows
+          path: ai-filter-windows.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Build macOS Binary
+        run: |
+          cargo build --release
+          cp target/release/ai-content-filter ./ai-filter-macos
+          chmod +x ./ai-filter-macos
+      
+      - name: Upload macOS Binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: ai-filter-macos
+          path: ai-filter-macos
+
+  create-release:
+    needs: [build-linux, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Create checksums
+        run: |
+          sha256sum ai-filter-linux/ai-filter-linux > checksums.txt
+          sha256sum ai-filter-windows/ai-filter-windows.exe >> checksums.txt
+          sha256sum ai-filter-macos/ai-filter-macos >> checksums.txt
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.version || github.ref }}
+          release_name: AI Content Filter ${{ github.event.inputs.version || github.ref }}
+          body: |
+            ## AI Content Filter Release
+            
+            ### Features
+            - 🚀 Ultra-fast filtering (millisecond response time)
+            - 📦 Lightweight binaries (2-3MB)
+            - 🔒 Completely offline operation
+            - 🎯 Flexible configuration with YAML rules
+            - 🌍 Cross-platform support
+            
+            ### Installation
+            
+            1. Download the appropriate binary for your platform
+            2. Make it executable: `chmod +x ai-filter-*` (Linux/macOS)
+            3. Run: `./ai-filter-* check "test content"`
+            
+            ### Downloads
+            - **Linux**: `ai-filter-linux`
+            - **Windows**: `ai-filter-windows.exe`
+            - **macOS**: `ai-filter-macos`
+            
+            ### Checksums
+            See `checksums.txt` for SHA256 hashes of all binaries.
+          draft: false
+          prerelease: false
+      
+      - name: Upload Linux Binary to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ai-filter-linux/ai-filter-linux
+          asset_name: ai-filter-linux
+          asset_content_type: application/octet-stream
+      
+      - name: Upload Windows Binary to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ai-filter-windows/ai-filter-windows.exe
+          asset_name: ai-filter-windows.exe
+          asset_content_type: application/octet-stream
+      
+      - name: Upload macOS Binary to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ai-filter-macos/ai-filter-macos
+          asset_name: ai-filter-macos
+          asset_content_type: application/octet-stream
+      
+      - name: Upload Checksums
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./checksums.txt
+          asset_name: checksums.txt
+          asset_content_type: text/plain
