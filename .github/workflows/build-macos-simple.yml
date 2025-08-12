@@ -1,0 +1,44 @@
+name: Build macOS Binary Simple
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source $HOME/.cargo/env
+      
+      - name: Build macOS Binary
+        run: |
+          source $HOME/.cargo/env
+          cargo build --release
+          cp target/release/ai-content-filter ./ai-filter-macos
+          chmod +x ./ai-filter-macos
+          
+      - name: Test Binary
+        run: |
+          ./ai-filter-macos --version
+          ./ai-filter-macos check "test content"
+      
+      - name: Upload as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ai-filter-macos
+          path: ai-filter-macos
+      
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0.0
+          files: ai-filter-macos
+          token: ${{ secrets.GITHUB_TOKEN }}
